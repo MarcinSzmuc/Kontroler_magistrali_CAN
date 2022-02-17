@@ -1,0 +1,504 @@
+/*
+ * Funkcje.C
+ *
+ *  Created on: 11.10.2021
+ *      Author: SaintHunter
+ */
+#include "Funkcje.h"
+#include "stm32f1xx_hal.h"
+
+extern TIM_HandleTypeDef tim3;
+extern GPIO_InitTypeDef gpio;
+extern UART_HandleTypeDef uart;
+extern CAN_HandleTypeDef can;
+extern CAN_FilterTypeDef canfilter;
+
+void wyslij_znak(char znak) {
+	HAL_UART_Transmit(&uart, (uint8_t*) &znak, 1, 1000);
+}
+
+void wyslij_string(char* string) {
+	HAL_UART_Transmit(&uart, (uint8_t*) string, strlen(string), 1000);
+}
+
+void delay(uint16_t us) {
+	__HAL_TIM_SET_COUNTER(&tim3, 0);  // set the counter value a 0
+	while (__HAL_TIM_GET_COUNTER(&tim3) < us)
+		;  // wait for the counter to reach the us input in the parameter
+}
+
+int __io_putchar(int ch) {
+	if (ch == '\n')
+		wyslij_znak('\r');
+	wyslij_znak(ch);
+	return ch;
+} //do fukncji printf
+
+uint8_t pobierz_klawisz() {
+	//skan kolumny 0
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET);
+	delay(2);
+	//sprawdz stan w rzedach
+	if (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_4))
+		return 'A';
+	if (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_5))
+		return 'B';
+	if (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_6))
+		return 'C';
+	if (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_7))
+		return 'D';
+
+	//skan kolumny 1
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET);
+	delay(2);
+	//sprawdz stan w rzedach
+	if (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_4))
+		return 3;
+	if (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_5))
+		return 6;
+	if (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_6))
+		return 9;
+	if (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_7))
+		return 'E';
+
+	//skan kolumny 2
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET);
+	delay(2);
+	//sprawdz stan w rzedach
+	if (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_4))
+		return 2;
+	if (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_5))
+		return 5;
+	if (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_6))
+		return 8;
+	if (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_7))
+		return 'F';
+
+	//skan kolumny 3
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_RESET);
+	delay(2);
+	//sprawdz stan w rzedach
+	if (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_4))
+		return 1;
+	if (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_5))
+		return 4;
+	if (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_6))
+		return 7;
+	if (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_7))
+		return 0;
+
+	return ' ';
+}
+
+uint16_t menu_predkosc() {
+
+	uint8_t bufor[4] = { 0 };
+	uint16_t predkosc_can = 0;
+	uint8_t predkosc_can_cyfra1 = ' ';
+	uint8_t predkosc_can_cyfra2 = ' ';
+	uint8_t predkosc_can_cyfra3 = ' ';
+	uint8_t predkosc_can_cyfra4 = ' ';
+	uint8_t wybor_predkosci = 1;
+
+	while (wybor_predkosci < 3) {
+
+		switch (wybor_predkosci) {
+
+		case 1:
+			wyslij_string("Podaj predkosc magistrali max. 1024. (4 cyfry)\n\r");
+			while (predkosc_can_cyfra1 > 9)
+				predkosc_can_cyfra1 = pobierz_klawisz();
+			while (pobierz_klawisz() == predkosc_can_cyfra1)
+				;//sprawdzenie czy klawisz zostal puszczony, dzieki temu nastepne opcje nie pobiora tej samej wartosci, trzeba puscic klawisz i dopiero wcisnac go ponownie do nastepnej opcji
+			bufor[0] = '0' + predkosc_can_cyfra1;
+			wyslij_znak(bufor[0]);
+
+			while (predkosc_can_cyfra2 > 9)
+				predkosc_can_cyfra2 = pobierz_klawisz();
+			while (pobierz_klawisz() == predkosc_can_cyfra2)
+				;
+			bufor[1] = '0' + predkosc_can_cyfra2;
+			wyslij_znak(bufor[1]);
+
+			while (predkosc_can_cyfra3 > 9)
+				predkosc_can_cyfra3 = pobierz_klawisz();
+			while (pobierz_klawisz() == predkosc_can_cyfra3)
+				;
+			bufor[2] = '0' + predkosc_can_cyfra3;
+			wyslij_znak(bufor[2]);
+
+			while (predkosc_can_cyfra4 > 9)
+				predkosc_can_cyfra4 = pobierz_klawisz();
+			while (pobierz_klawisz() == predkosc_can_cyfra4)
+				;
+			bufor[3] = '0' + predkosc_can_cyfra4;
+			wyslij_znak(bufor[3]);
+			wyslij_string("\n\r");
+
+			predkosc_can = predkosc_can_cyfra1 * 10 * 10 * 10
+					+ predkosc_can_cyfra2 * 10 * 10 + predkosc_can_cyfra3 * 10
+					+ predkosc_can_cyfra4;
+			wybor_predkosci = 2;
+			break;
+		case 2:
+			if (predkosc_can > 1024) {
+				wyslij_string(
+						"predkosc zbyt duza wpisz liczbe z zakresu 0-1024\n\r");
+				predkosc_can_cyfra1 = ' ';
+				predkosc_can_cyfra2 = ' ';
+				predkosc_can_cyfra3 = ' ';
+				predkosc_can_cyfra4 = ' ';
+				wybor_predkosci = 1;
+
+			} else if (predkosc_can < 1024) {
+
+				wybor_predkosci = 3;
+				break;
+			}
+		}
+
+	}
+	wyslij_string("wybrano predkosc\n\r");
+	return predkosc_can;
+}
+
+void konfiguruj_filtr_can() {
+
+	canfilter.FilterBank = 0;
+	canfilter.FilterMode = CAN_FILTERMODE_IDMASK;
+	canfilter.FilterFIFOAssignment = 0;
+	canfilter.FilterIdHigh = 0;
+	canfilter.FilterIdLow = 0;
+	canfilter.FilterMaskIdHigh = 0;
+	canfilter.FilterMaskIdLow = 0;
+	canfilter.FilterScale = CAN_FILTERSCALE_32BIT;
+	canfilter.FilterActivation = ENABLE;
+	canfilter.SlaveStartFilterBank = 14;
+
+}
+
+void konfiguruj_can(uint16_t predkosc_can) {
+	//pkt probkowania
+
+	uint32_t BRP = 8;		//Min_Data = 1 and Max_Data = 1024
+	uint32_t NBT;		// na razie poustawiane na szytywno, zrobic algorytm
+	uint32_t tq;
+	uint8_t liczba_tq;
+	uint32_t SJW =  (0x00000000U);
+	uint32_t tseg1 =  ((uint32_t)(CAN_BTR_TS1_1 | CAN_BTR_TS1_0)) ;
+	uint32_t tseg2 =  ((uint32_t)CAN_BTR_TS2_0)  ;
+	uint32_t predkosc_koncowa;
+	//itd....
+
+//	for (BRP = 1; BRP <= 1024; BRP++) {
+//
+//		tq = BRP / (SystemCoreClock / 1000000);		//tq w nano=tq*1000000
+//		liczba_tq = 5;
+//		NBT = liczba_tq * tq;
+//		predkosc_koncowa = 1 / NBT;
+//
+//	}
+
+	gpio.Mode = GPIO_MODE_AF_OD;
+	gpio.Pin = GPIO_PIN_8 | GPIO_PIN_9;
+	gpio.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(GPIOB, &gpio);
+
+	can.Instance = CAN1;
+	can.Init.Prescaler = 16;
+	can.Init.Mode = CAN_MODE_NORMAL; //DO TESTOWANIA MOZNA USTAWIC LOOPBACK
+	can.Init.SyncJumpWidth = CAN_SJW_1TQ;
+	can.Init.TimeSeg1 = CAN_BS1_6TQ;
+	can.Init.TimeSeg2 = CAN_BS2_4TQ;
+
+	HAL_CAN_Init(&can);		//JESZCZE SPRAWDZIC ALE CHYBA DZIALA
+	HAL_CAN_ConfigFilter(&can, &canfilter);
+	HAL_CAN_Start(&can);
+
+	wyslij_string("Skonfigurowano CAN\n\r");
+}
+
+void menu_filtr() {
+	uint8_t m_filtr = 1;
+	uint8_t bufor[4] = { 0 };
+
+	uint8_t wybor_filtr = ' ';
+	uint8_t FilterBank = ' ';
+	uint8_t FilterMode = ' ';
+	uint8_t FilterFIFOAssignment = ' ';
+
+	uint8_t FilterIdHigh1 = ' ';
+	uint8_t FilterIdHigh2 = ' ';
+	uint8_t FilterIdHigh3 = ' ';
+	uint8_t FilterIdHigh4 = ' ';
+
+	uint8_t FilterIdLow1 = ' ';
+	uint8_t FilterIdLow2 = ' ';
+	uint8_t FilterIdLow3 = ' ';
+	uint8_t FilterIdLow4 = ' ';
+
+	uint8_t FilterMaskIdHigh1 = ' ';
+	uint8_t FilterMaskIdHigh2 = ' ';
+	uint8_t FilterMaskIdHigh3 = ' ';
+	uint8_t FilterMaskIdHigh4 = ' ';
+
+	uint8_t FilterMaskIdLow1 = ' ';
+	uint8_t FilterMaskIdLow2 = ' ';
+	uint8_t FilterMaskIdLow3 = ' ';
+	uint8_t FilterMaskIdLow4 = ' ';
+	uint8_t FilterScale = CAN_FILTERSCALE_32BIT;
+
+//nie uwzywane	uint8_t SlaveStartFilterBank = 14;
+
+	while (m_filtr < 10) {
+		switch (m_filtr) {
+		case 1:
+			wyslij_string(
+					"Czy chcesz dokonac filtracji odbieranych ramek CAN?\n\rA - tak\n\rB - nie\n\r");
+			while (wybor_filtr != 'A' && wybor_filtr != 'B')
+				wybor_filtr = pobierz_klawisz();
+			while (pobierz_klawisz() == wybor_filtr)
+				;
+			wyslij_znak(wybor_filtr);
+			wyslij_string("\n\r");
+			if (wybor_filtr == 'A') {
+				canfilter.FilterActivation = ENABLE;
+				m_filtr = 2;
+			} else if (wybor_filtr == 'B') {
+				konfiguruj_filtr_can();			//sprawdzic wartosci czy sa ok
+				canfilter.FilterActivation = DISABLE;
+				m_filtr = 10;
+			}
+
+			break;
+
+		case 2:
+			wyslij_string("podaj FilterBank\n\r");
+			while (FilterBank > 9)
+				FilterBank = pobierz_klawisz();
+			canfilter.FilterBank = FilterBank;
+			while (pobierz_klawisz() == FilterBank)
+				;
+			bufor[0] = '0' + FilterBank;
+			wyslij_znak(bufor[0]);
+			wyslij_string("\n\r");
+			m_filtr = 3;
+
+			break;
+		case 3:
+			wyslij_string("podaj FilterMode\n\rIDMASK - A\n\rIDLIST - B\n\r");
+			while (FilterMode != 'A' && FilterMode != 'B')
+				FilterMode = pobierz_klawisz();
+			while (pobierz_klawisz() == FilterMode)
+				;
+			wyslij_znak(FilterMode);
+			wyslij_string("\n\r");
+			if (FilterMode == 'A')
+				canfilter.FilterMode = CAN_FILTERMODE_IDMASK;
+			else if (FilterMode == 'B')
+				canfilter.FilterMode = CAN_FILTERMODE_IDLIST;
+			m_filtr = 4;
+
+			break;
+
+		case 4:
+				wyslij_string("podaj FilterScale\n\r16BIT - A\n\r32BIT - B\n\r");
+				while (FilterScale != 'A' && FilterScale != 'B')
+					FilterScale = pobierz_klawisz();
+				while (pobierz_klawisz() == FilterScale)
+					;
+				wyslij_znak(FilterScale);
+				wyslij_string("\n\r");
+				if (FilterScale == 'A')
+					canfilter.FilterScale = CAN_FILTERSCALE_16BIT;
+				else if (FilterScale == 'B')
+					canfilter.FilterScale = CAN_FILTERSCALE_32BIT;
+				m_filtr = 5;
+
+				break;
+		case 5:
+			wyslij_string("podaj FilterFIFOAssignment\n\r");
+			while (FilterFIFOAssignment != 0 && FilterFIFOAssignment != 1)
+				FilterFIFOAssignment = pobierz_klawisz();
+			canfilter.FilterFIFOAssignment = FilterFIFOAssignment;
+			while (pobierz_klawisz() == FilterFIFOAssignment)
+				;
+			bufor[0] = '0' + FilterFIFOAssignment;
+			wyslij_znak(bufor[0]);
+			wyslij_string("\n\r");
+			m_filtr = 6;
+			break;
+		case 6:
+			if(canfilter.FilterScale == CAN_FILTERSCALE_16BIT && canfilter.FilterMode == CAN_FILTERMODE_IDMASK)
+			wyslij_string("podaj 1. i 2. 16-bitowy identyfikator (4 cyfry)\n\r");
+			while (FilterIdHigh1 > 9)
+				FilterIdHigh1 = pobierz_klawisz();
+			while (pobierz_klawisz() == FilterIdHigh1)
+				;
+			bufor[0] = '0' + FilterIdHigh1;
+			wyslij_znak(bufor[0]);
+
+			while (FilterIdHigh2 > 9)
+				FilterIdHigh2 = pobierz_klawisz();
+			while (pobierz_klawisz() == FilterIdHigh2)
+				;
+			bufor[1] = '0' + FilterIdHigh2;
+			wyslij_znak(bufor[1]);
+
+			while (FilterIdHigh3 > 9)
+				FilterIdHigh3 = pobierz_klawisz();
+			while (pobierz_klawisz() == FilterIdHigh3)
+				;
+			bufor[2] = '0' + FilterIdHigh3;
+			wyslij_znak(bufor[2]);
+
+			while (FilterIdHigh4 > 9)
+				FilterIdHigh4 = pobierz_klawisz();
+			while (pobierz_klawisz() == FilterIdHigh4)
+				;
+			bufor[3] = '0' + FilterIdHigh4;
+			wyslij_znak(bufor[3]);
+			wyslij_string("\n\r");
+
+			canfilter.FilterIdHigh = FilterIdHigh1 * 10 * 10 * 10
+					+ FilterIdHigh2 * 10 * 10 + FilterIdHigh3 * 10
+					+ FilterIdHigh4;
+			//wyslij_string(bufor);
+			m_filtr = 7;
+
+			break;
+		case 7:
+			wyslij_string("podaj FilterIdLow (4 cyfry)\n\r");//moze zaznaczyc na lcd ze wymagane sa 4 cyfry
+			while (FilterIdLow1 > 9)
+				FilterIdLow1 = pobierz_klawisz();
+			while (pobierz_klawisz() == FilterIdLow1)
+				;
+			bufor[0] = '0' + FilterIdLow1;
+			wyslij_znak(bufor[0]);
+			while (FilterIdLow2 > 9)
+				FilterIdLow2 = pobierz_klawisz();
+			while (pobierz_klawisz() == FilterIdLow2)
+				;
+			bufor[1] = '0' + FilterIdLow2;
+			wyslij_znak(bufor[1]);
+			while (FilterIdLow3 > 9)
+				FilterIdLow3 = pobierz_klawisz();
+			while (pobierz_klawisz() == FilterIdLow3)
+				;
+			bufor[2] = '0' + FilterIdLow3;
+			wyslij_znak(bufor[2]);
+			while (FilterIdLow4 > 9)
+				FilterIdLow4 = pobierz_klawisz();
+			while (pobierz_klawisz() == FilterIdLow4)
+				;
+			bufor[3] = '0' + FilterIdLow4;
+			wyslij_znak(bufor[3]);
+			wyslij_string("\n\r");
+
+			canfilter.FilterIdLow = FilterIdLow1 * 10 * 10 * 10
+					+ FilterIdLow2 * 10 * 10 + FilterIdLow3 * 10 + FilterIdLow4;
+			m_filtr = 8;
+
+			break;
+		case 8:
+			wyslij_string("podaj FilterMaskIdHigh (4 cyfry)\n\r");
+			while (FilterMaskIdHigh1 > 9)
+				FilterMaskIdHigh1 = pobierz_klawisz();
+			while (pobierz_klawisz() == FilterMaskIdHigh1)
+				;
+			bufor[0] = '0' + FilterMaskIdHigh1;
+			wyslij_znak(bufor[0]);
+			while (FilterMaskIdHigh2 > 9)
+				FilterMaskIdHigh2 = pobierz_klawisz();
+			while (pobierz_klawisz() == FilterMaskIdHigh2)
+				;
+			bufor[1] = '0' + FilterMaskIdHigh2;
+			wyslij_znak(bufor[1]);
+			while (FilterMaskIdHigh3 > 9)
+				FilterMaskIdHigh3 = pobierz_klawisz();
+			while (pobierz_klawisz() == FilterMaskIdHigh3)
+				;
+			bufor[2] = '0' + FilterMaskIdHigh3;
+			wyslij_znak(bufor[2]);
+			while (FilterMaskIdHigh4 > 9)
+				FilterMaskIdHigh4 = pobierz_klawisz();
+			while (pobierz_klawisz() == FilterMaskIdHigh4)
+				;
+			bufor[3] = '0' + FilterMaskIdHigh4;
+			wyslij_znak(bufor[3]);
+			wyslij_string("\n\r");
+
+			canfilter.FilterMaskIdHigh = FilterMaskIdHigh1 * 10 * 10 * 10
+					+ FilterMaskIdHigh2 * 10 * 10 + FilterMaskIdHigh3 * 10
+					+ FilterMaskIdHigh4;
+			m_filtr = 9;
+
+			break;
+
+		case 9:
+			wyslij_string("podaj FilterMaskIdLow (4 cyfry)\n\r");
+			while (FilterMaskIdLow1 > 9)
+				FilterMaskIdLow1 = pobierz_klawisz();
+			while (pobierz_klawisz() == FilterMaskIdLow1)
+				;
+			bufor[0] = '0' + FilterMaskIdLow1;
+			wyslij_znak(bufor[0]);
+			while (FilterMaskIdLow2 > 9)
+				FilterMaskIdLow2 = pobierz_klawisz();
+			while (pobierz_klawisz() == FilterMaskIdLow2)
+				;
+			bufor[1] = '0' + FilterMaskIdLow2;
+			wyslij_znak(bufor[1]);
+			while (FilterMaskIdLow3 > 9)
+				FilterMaskIdLow3 = pobierz_klawisz();
+			while (pobierz_klawisz() == FilterMaskIdLow3)
+				;
+			bufor[2] = '0' + FilterMaskIdLow3;
+			wyslij_znak(bufor[2]);
+			while (FilterMaskIdLow4 > 9)
+				FilterMaskIdLow4 = pobierz_klawisz();
+			while (pobierz_klawisz() == FilterMaskIdLow4)
+				;
+			bufor[3] = '0' + FilterMaskIdLow4;
+			wyslij_znak(bufor[3]);
+			wyslij_string("\n\r");
+
+			canfilter.FilterMaskIdLow = FilterMaskIdLow1 * 10 * 10 * 10
+					+ FilterMaskIdLow2 * 10 * 10 + FilterMaskIdLow3 * 10
+					+ FilterMaskIdLow4;
+			m_filtr = 10;
+
+			break;
+
+
+		}
+	}
+	//HAL_CAN_ConfigFilter(&can, &canfilter);		sprawdzic czy uzywajac tego w innej funkcji nie nadpisza sie wartosci
+	wyslij_string("Skonfigurowano filtr CAN\n\r");
+
+}
+
+// NASTEPNIE DODAC OPCJE NADAWANIA O ODBIERANIA POSZCZEGOLNYCH WIADOMOSCI
+void menu_can() {
+	uint8_t menu = 1;
+
+	switch (menu) {
+
+	//case 1:
+
+///zlozone w calosc menu wyboru wszystkich opcji tu beda odwolania do poszczegolnych fnkcji
+
+	}
+}

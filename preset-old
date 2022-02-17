@@ -1,0 +1,497 @@
+uint8_t pobierz_klawisz_can() {
+
+	uint8_t klawisz = ' ';
+	while (HAL_UART_Receive(&uart, &klawisz, 1, 1) != 0)
+		;
+	return klawisz;
+
+}
+
+void wyslij_znak_can(char znak) {
+
+	HAL_UART_Transmit(&uart, (uint8_t*) &znak, 1, 1000);
+}
+
+
+void konfiguruj_preset() {
+	uint8_t m_preset = 1;
+	uint8_t m_wiadomosc = 1;
+
+	preset_canTx[0] = ' ';
+	preset_canTx[1] = ' ';
+	preset_canTx[2] = ' ';
+	preset_canTx[3] = ' ';
+	preset_canTx[4] = ' ';
+	preset_canTx[5] = ' ';
+	preset_canTx[6] = ' ';
+	preset_canTx[7] = ' ';
+
+	preset_canRx[0] = ' ';
+	preset_canRx[1] = ' ';
+	preset_canRx[2] = ' ';
+	preset_canRx[3] = ' ';
+	preset_canRx[4] = ' ';
+	preset_canRx[5] = ' ';
+	preset_canRx[6] = ' ';
+	preset_canRx[7] = ' ';
+
+	uint8_t komorka_pamieci_preset = 0;
+
+	wyslij_string(
+			"Preset dziala w nastepujacy sposob: Wpisujesz zawartosc wiadomosci, ktorej oczekujesz, a nastepnie jaka wiadomosc chcesz przeslac dalej\n\r");
+	wyslij_string("Ktory preset chcesz skonfigurowac? (1-3)\n\r");
+	while (komorka_pamieci_preset != 1 && komorka_pamieci_preset != 2
+			&& komorka_pamieci_preset != 3)
+		komorka_pamieci_preset = pobierz_klawisz();
+	wyslij_znak(komorka_pamieci_preset);
+	wyslij_string("\n\r");
+
+	while (m_preset < 3) {
+		switch (m_preset) {
+		case 1:
+
+			while (m_wiadomosc < 9) {
+				switch (m_wiadomosc) {
+				case 1:
+					wyslij_string(
+							"Podaj kolejne bajty wiadomosci do odbioru \n\r");
+
+					preset_canRx[0] = pobierz_klawisz_can();
+					wyslij_znak_can(preset_canRx[0]);
+					m_wiadomosc = 2;
+					if (komorka_pamieci_preset == 1) {
+						preset_canRx1[0] = preset_canRx[0];
+						zapisz_do_pamieci8b(156, preset_canRx[0]);
+					} else if (komorka_pamieci_preset == 2) {
+						preset_canRx2[0] = preset_canRx[0];
+						zapisz_do_pamieci8b(157, preset_canRx[0]);
+					} else if (komorka_pamieci_preset == 3) {
+						preset_canRx3[0] = preset_canRx[0];
+						zapisz_do_pamieci8b(158, preset_canRx[0]);
+					}
+					break;
+				case 2:
+
+					preset_canRx[1] = pobierz_klawisz_can();
+					wyslij_znak_can(preset_canRx[1]);
+					m_wiadomosc = 3;
+					if (komorka_pamieci_preset == 1) {
+						preset_canRx1[1] = preset_canRx[1];
+						zapisz_do_pamieci8b(159, preset_canRx[1]);
+					}
+
+					else if (komorka_pamieci_preset == 2) {
+						preset_canRx2[1] = preset_canRx[1];
+						zapisz_do_pamieci8b(160, preset_canRx[1]);
+					}
+
+					else if (komorka_pamieci_preset == 3) {
+						preset_canRx3[1] = preset_canRx[1];
+						zapisz_do_pamieci8b(161, preset_canRx[1]);
+					}
+
+					break;
+				case 3:
+
+					preset_canRx[2] = pobierz_klawisz_can();
+					wyslij_znak_can(preset_canRx[2]);
+					m_wiadomosc = 4;
+					if (komorka_pamieci_preset == 1) {
+						preset_canRx1[2] = preset_canRx[2];
+						zapisz_do_pamieci8b(162, preset_canRx[2]);
+					}
+
+					else if (komorka_pamieci_preset == 2) {
+						preset_canRx2[2] = preset_canRx[2];
+						zapisz_do_pamieci8b(163, preset_canRx[2]);
+					}
+
+					else if (komorka_pamieci_preset == 3) {
+						preset_canRx3[2] = preset_canRx[2];
+						zapisz_do_pamieci8b(164, preset_canRx[2]);
+					}
+
+					break;
+				case 4:
+
+					preset_canRx[3] = pobierz_klawisz_can();
+					wyslij_znak_can(preset_canRx[3]);
+					m_wiadomosc = 5;
+					if (komorka_pamieci_preset == 1) {
+						preset_canRx1[3] = preset_canRx[3];
+						zapisz_do_pamieci8b(165, preset_canRx[3]);
+					}
+
+					else if (komorka_pamieci_preset == 2) {
+						preset_canRx2[3] = preset_canRx[3];
+						zapisz_do_pamieci8b(166, preset_canRx[3]);
+					}
+
+					else if (komorka_pamieci_preset == 3) {
+						preset_canRx3[3] = preset_canRx[3];
+						zapisz_do_pamieci8b(167, preset_canRx[3]);
+					}
+
+					break;
+				case 5:
+
+					preset_canRx[4] = pobierz_klawisz_can();
+					wyslij_znak_can(preset_canRx[4]);
+					m_wiadomosc = 6;
+					if (komorka_pamieci_preset == 1) {
+						preset_canRx1[4] = preset_canRx[4];
+						zapisz_do_pamieci8b(168, preset_canRx[4]);
+					}
+
+					else if (komorka_pamieci_preset == 2) {
+						preset_canRx2[4] = preset_canRx[4];
+						zapisz_do_pamieci8b(169, preset_canRx[4]);
+					}
+
+					else if (komorka_pamieci_preset == 3) {
+						preset_canRx3[4] = preset_canRx[4];
+						zapisz_do_pamieci8b(170, preset_canRx[4]);
+					}
+
+					break;
+				case 6:
+
+					preset_canRx[5] = pobierz_klawisz_can();
+					wyslij_znak_can(preset_canRx[5]);
+					m_wiadomosc = 7;
+					if (komorka_pamieci_preset == 1) {
+						preset_canRx1[5] = preset_canRx[5];
+						zapisz_do_pamieci8b(171, preset_canRx[5]);
+					}
+
+					else if (komorka_pamieci_preset == 2) {
+						preset_canRx2[5] = preset_canRx[5];
+						zapisz_do_pamieci8b(172, preset_canRx[5]);
+					}
+
+					else if (komorka_pamieci_preset == 3) {
+						preset_canRx3[5] = preset_canRx[5];
+						zapisz_do_pamieci8b(173, preset_canRx[5]);
+					}
+
+					break;
+				case 7:
+
+					preset_canRx[6] = pobierz_klawisz_can();
+					wyslij_znak_can(preset_canRx[6]);
+					m_wiadomosc = 8;
+					if (komorka_pamieci_preset == 1) {
+						preset_canRx1[6] = preset_canRx[6];
+						zapisz_do_pamieci8b(174, preset_canRx[6]);
+					}
+
+					else if (komorka_pamieci_preset == 2) {
+						preset_canRx2[6] = preset_canRx[6];
+						zapisz_do_pamieci8b(175, preset_canRx[6]);
+					}
+
+					else if (komorka_pamieci_preset == 3) {
+						preset_canRx3[6] = preset_canRx[6];
+						zapisz_do_pamieci8b(176, preset_canRx[6]);
+					}
+
+					break;
+				case 8:
+
+					preset_canRx[7] = pobierz_klawisz_can();
+					wyslij_znak_can(preset_canRx[7]);
+					wyslij_string("\n\r");
+					m_wiadomosc = 9;
+					if (komorka_pamieci_preset == 1) {
+						preset_canRx1[7] = preset_canRx[7];
+						zapisz_do_pamieci8b(177, preset_canRx[7]);
+					}
+
+					else if (komorka_pamieci_preset == 2) {
+						preset_canRx2[7] = preset_canRx[7];
+						zapisz_do_pamieci8b(178, preset_canRx[7]);
+					}
+
+					else if (komorka_pamieci_preset == 3) {
+						preset_canRx3[7] = preset_canRx[7];
+						zapisz_do_pamieci8b(179, preset_canRx[7]);
+					}
+
+					break;
+				}
+			}
+			m_wiadomosc = 1;
+			m_preset = 2;
+			break;
+		case 2:
+
+			while (m_wiadomosc < 9) {
+				switch (m_wiadomosc) {
+				case 1:
+					wyslij_string(
+							"Podaj kolejne bajty wiadomosci do przeslania \n\r");
+
+					preset_canTx[0] = pobierz_klawisz_can();
+					wyslij_znak_can(preset_canTx[0]);
+					m_wiadomosc = 2;
+					if (komorka_pamieci_preset == 1) {
+						preset_canTx1[0] = preset_canTx[0];
+						zapisz_do_pamieci8b(180, preset_canTx[0]);
+					} else if (komorka_pamieci_preset == 2) {
+						preset_canTx2[0] = preset_canTx[0];
+						zapisz_do_pamieci8b(181, preset_canTx[0]);
+					} else if (komorka_pamieci_preset == 3) {
+						preset_canTx3[0] = preset_canTx[0];
+						zapisz_do_pamieci8b(182, preset_canTx[0]);
+					}
+					break;
+				case 2:
+
+					preset_canTx[1] = pobierz_klawisz_can();
+					wyslij_znak_can(preset_canTx[1]);
+					m_wiadomosc = 3;
+					if (komorka_pamieci_preset == 1) {
+						preset_canTx1[1] = preset_canTx[1];
+						zapisz_do_pamieci8b(183, preset_canTx[1]);
+					}
+
+					else if (komorka_pamieci_preset == 2) {
+						preset_canTx2[1] = preset_canTx[1];
+						zapisz_do_pamieci8b(184, preset_canTx[1]);
+					}
+
+					else if (komorka_pamieci_preset == 3) {
+						preset_canTx3[1] = preset_canTx[1];
+						zapisz_do_pamieci8b(185, preset_canTx[1]);
+					}
+
+					break;
+				case 3:
+
+					preset_canTx[2] = pobierz_klawisz_can();
+					wyslij_znak_can(preset_canTx[2]);
+					m_wiadomosc = 4;
+					if (komorka_pamieci_preset == 1) {
+						preset_canTx1[2] = preset_canTx[2];
+						zapisz_do_pamieci8b(186, preset_canTx[2]);
+					}
+
+					else if (komorka_pamieci_preset == 2) {
+						preset_canTx2[2] = preset_canTx[2];
+						zapisz_do_pamieci8b(187, preset_canTx[2]);
+					}
+
+					else if (komorka_pamieci_preset == 3) {
+						preset_canTx3[2] = preset_canTx[2];
+						zapisz_do_pamieci8b(188, preset_canTx[2]);
+					}
+
+					break;
+				case 4:
+
+					preset_canTx[3] = pobierz_klawisz_can();
+					wyslij_znak_can(preset_canTx[3]);
+					m_wiadomosc = 5;
+					if (komorka_pamieci_preset == 1) {
+						preset_canTx1[3] = preset_canTx[3];
+						zapisz_do_pamieci8b(189, preset_canTx[3]);
+					}
+
+					else if (komorka_pamieci_preset == 2) {
+						preset_canTx2[3] = preset_canTx[3];
+						zapisz_do_pamieci8b(190, preset_canTx[3]);
+					}
+
+					else if (komorka_pamieci_preset == 3) {
+						preset_canTx3[3] = preset_canTx[3];
+						zapisz_do_pamieci8b(191, preset_canTx[3]);
+					}
+
+					break;
+				case 5:
+
+					preset_canTx[4] = pobierz_klawisz_can();
+					wyslij_znak_can(preset_canTx[4]);
+					m_wiadomosc = 6;
+					if (komorka_pamieci_preset == 1) {
+						preset_canTx1[4] = preset_canTx[4];
+						zapisz_do_pamieci8b(192, preset_canTx[4]);
+					}
+
+					else if (komorka_pamieci_preset == 2) {
+						preset_canTx2[4] = preset_canTx[4];
+						zapisz_do_pamieci8b(193, preset_canTx[4]);
+					}
+
+					else if (komorka_pamieci_preset == 3) {
+						preset_canTx3[4] = preset_canTx[4];
+						zapisz_do_pamieci8b(194, preset_canTx[4]);
+					}
+
+					break;
+				case 6:
+
+					preset_canTx[5] = pobierz_klawisz_can();
+					wyslij_znak_can(preset_canTx[5]);
+					m_wiadomosc = 7;
+					if (komorka_pamieci_preset == 1) {
+						preset_canTx1[5] = preset_canTx[5];
+						zapisz_do_pamieci8b(195, preset_canTx[5]);
+					}
+
+					else if (komorka_pamieci_preset == 2) {
+						preset_canTx2[5] = preset_canTx[5];
+						zapisz_do_pamieci8b(196, preset_canTx[5]);
+					}
+
+					else if (komorka_pamieci_preset == 3) {
+						preset_canTx3[5] = preset_canTx[5];
+						zapisz_do_pamieci8b(197, preset_canTx[5]);
+					}
+
+					break;
+				case 7:
+
+					preset_canTx[6] = pobierz_klawisz_can();
+					wyslij_znak_can(preset_canTx[6]);
+					m_wiadomosc = 8;
+					if (komorka_pamieci_preset == 1) {
+						preset_canTx1[6] = preset_canTx[6];
+						zapisz_do_pamieci8b(198, preset_canTx[6]);
+					}
+
+					else if (komorka_pamieci_preset == 2) {
+						preset_canTx2[6] = preset_canTx[6];
+						zapisz_do_pamieci8b(199, preset_canTx[6]);
+					}
+
+					else if (komorka_pamieci_preset == 3) {
+						preset_canTx3[6] = preset_canTx[6];
+						zapisz_do_pamieci8b(200, preset_canTx[6]);
+					}
+
+					break;
+				case 8:
+
+					preset_canTx[7] = pobierz_klawisz_can();
+					wyslij_znak_can(preset_canTx[7]);
+					wyslij_string("\n\r");
+					m_wiadomosc = 9;
+					if (komorka_pamieci_preset == 1) {
+						preset_canTx1[7] = preset_canTx[7];
+						zapisz_do_pamieci8b(201, preset_canTx[7]);
+					}
+
+					else if (komorka_pamieci_preset == 2) {
+						preset_canTx2[7] = preset_canTx[7];
+						zapisz_do_pamieci8b(202, preset_canTx[7]);
+					}
+
+					else if (komorka_pamieci_preset == 3) {
+						preset_canTx3[7] = preset_canTx[7];
+						zapisz_do_pamieci8b(203, preset_canTx[7]);
+					}
+
+					break;
+				}
+			}
+
+			m_preset = 3;
+			break;
+
+		}
+
+	}
+	wyslij_string("Skonfigurowano preset\n\r");
+}
+void wybierz_preset() {
+
+	uint8_t ktory_preset = ' ';
+	uint8_t sprawdz = 0;
+	uint8_t x = 0;
+	uint8_t preset_wybierz_canRx[8] = { 0 };
+
+	wyslij_string("Ktory preset uruchomic? (1-3) Wcisnij 1 aby anulowac\n\r");
+	while (ktory_preset != 1 && ktory_preset != 2 && ktory_preset != 3)
+		ktory_preset = pobierz_klawisz();
+	wyslij_znak(ktory_preset);
+	wyslij_string("\n\r");
+
+	if (ktory_preset == 1) {
+		while (sprawdz != 1 && x != 1) {
+			if (HAL_CAN_GetRxFifoFillLevel(&can, CAN_RX_FIFO0))
+				HAL_CAN_GetRxMessage(&can, CAN_RX_FIFO0, &rxHeader,
+						preset_wybierz_canRx);
+			for (int i = 8; i > 0; i--)
+				if (rxHeader.DLC < i)
+					preset_canRx1[i - 1] = 0;
+
+			if (preset_wybierz_canRx[0] == preset_canRx1[0]
+					&& preset_wybierz_canRx[1] == preset_canRx1[1]
+					&& preset_wybierz_canRx[2] == preset_canRx1[2]
+					&& preset_wybierz_canRx[3] == preset_canRx1[3]
+					&& preset_wybierz_canRx[4] == preset_canRx1[4]
+					&& preset_wybierz_canRx[5] == preset_canRx1[5]
+					&& preset_wybierz_canRx[6] == preset_canRx1[6]
+					&& preset_wybierz_canRx[7] == preset_canRx1[7])
+				sprawdz = 1;
+			x = pobierz_klawisz();
+
+			if (sprawdz == 1)
+				if (HAL_CAN_GetTxMailboxesFreeLevel(&can)) {
+					HAL_CAN_AddTxMessage(&can, &txHeader, preset_canTx1,
+							&canMailbox);
+					wyslij_string("Wykonano preset 1.\n\r");
+				}
+		}
+	}
+	if (ktory_preset == 2) {
+		while (sprawdz != 1 && x != 1) {
+			if (HAL_CAN_GetRxFifoFillLevel(&can, CAN_RX_FIFO0))
+				HAL_CAN_GetRxMessage(&can, CAN_RX_FIFO0, &rxHeader,
+						preset_wybierz_canRx);
+			if (preset_wybierz_canRx[0] == preset_canRx2[0]
+					&& preset_wybierz_canRx[1] == preset_canRx2[1]
+					&& preset_wybierz_canRx[2] == preset_canRx2[2]
+					&& preset_wybierz_canRx[3] == preset_canRx2[3]
+					&& preset_wybierz_canRx[4] == preset_canRx2[4]
+					&& preset_wybierz_canRx[5] == preset_canRx2[5]
+					&& preset_wybierz_canRx[6] == preset_canRx2[6]
+					&& preset_wybierz_canRx[7] == preset_canRx2[7])
+				sprawdz = 1;
+			x = pobierz_klawisz();
+
+			if (sprawdz == 1)
+				if (HAL_CAN_GetTxMailboxesFreeLevel(&can)) {
+					HAL_CAN_AddTxMessage(&can, &txHeader, preset_canTx2,
+							&canMailbox);
+					wyslij_string("Wykonano preset 2.\n\r");
+				}
+		}
+	}
+	if (ktory_preset == 3) {
+		while (sprawdz != 1 && x != 1) {
+			if (HAL_CAN_GetRxFifoFillLevel(&can, CAN_RX_FIFO0))
+				HAL_CAN_GetRxMessage(&can, CAN_RX_FIFO0, &rxHeader,
+						preset_wybierz_canRx);
+			if (preset_wybierz_canRx[0] == preset_canRx3[0]
+					&& preset_wybierz_canRx[1] == preset_canRx3[1]
+					&& preset_wybierz_canRx[2] == preset_canRx3[2]
+					&& preset_wybierz_canRx[3] == preset_canRx3[3]
+					&& preset_wybierz_canRx[4] == preset_canRx3[4]
+					&& preset_wybierz_canRx[5] == preset_canRx3[5]
+					&& preset_wybierz_canRx[6] == preset_canRx3[6]
+					&& preset_wybierz_canRx[7] == preset_canRx3[7])
+				sprawdz = 1;
+			x = pobierz_klawisz();
+
+			if (sprawdz == 1)
+				if (HAL_CAN_GetTxMailboxesFreeLevel(&can)) {
+					HAL_CAN_AddTxMessage(&can, &txHeader, preset_canTx3,
+							&canMailbox);
+					wyslij_string("Wykonano preset 3.\n\r");
+				}
+		}
+	}
+
+}
